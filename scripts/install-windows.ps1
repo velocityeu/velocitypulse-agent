@@ -172,7 +172,7 @@ Write-Host "  Configuration written to .env" -ForegroundColor Green
 Write-Host ""
 Write-Host "[6/6] Registering Windows service..." -ForegroundColor Yellow
 
-$serviceName = "VelocityAgent"
+$serviceName = "VelocityPulseAgent"
 $serviceDisplay = "VelocityPulse Agent"
 $nodeExe = (Get-Command node).Source
 $entryPoint = Join-Path $InstallDir "dist\index.js"
