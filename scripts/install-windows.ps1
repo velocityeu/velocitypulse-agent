@@ -144,7 +144,6 @@ Write-Host "  Files installed" -ForegroundColor Green
 Write-Host "  Installing dependencies..."
 Push-Location $InstallDir
 npm install --production --silent 2>$null
-npm run build --silent 2>$null
 Pop-Location
 Write-Host "  Dependencies installed" -ForegroundColor Green
 

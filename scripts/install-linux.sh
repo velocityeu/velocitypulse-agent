@@ -127,7 +127,6 @@ echo -e "${GREEN}  Files installed${NC}"
 echo "  Installing dependencies..."
 cd "$INSTALL_DIR"
 npm install --production --silent 2>/dev/null
-npm run build --silent 2>/dev/null
 echo -e "${GREEN}  Dependencies installed${NC}"
 
 # ==============================================
