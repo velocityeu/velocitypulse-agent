@@ -4,6 +4,7 @@ import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { BUILD_ID } from '../utils/version.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 export class AgentUIServer {
@@ -34,6 +35,7 @@ export class AgentUIServer {
             organizationId: null,
             dashboardUrl: '',
             version: '1.0.0',
+            buildId: BUILD_ID,
             connected: false,
             lastHeartbeat: null,
             segments: [],
@@ -51,6 +53,12 @@ export class AgentUIServer {
                 current: initialState.version || '1.0.0',
                 latest: null,
                 updateAvailable: false,
+            },
+            config: {
+                scanIntervals: {},
+                enabledSegments: [],
+                pingTimeoutMs: 2000,
+                discoveryMethods: ['arp', 'ping'],
             },
             ...initialState,
         };
@@ -158,6 +166,10 @@ export class AgentUIServer {
             updateAvailable,
         };
         this.io.emit('version_info', this.state.versionInfo);
+    }
+    updateConfig(config) {
+        this.state.config = { ...this.state.config, ...config };
+        this.io.emit('config_update', this.state.config);
     }
     startHealthUpdates() {
         // Update health stats every 5 seconds

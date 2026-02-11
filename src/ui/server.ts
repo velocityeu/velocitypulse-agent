@@ -5,6 +5,7 @@ import { Server as SocketIOServer } from 'socket.io'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import type { Logger } from '../utils/logger.js'
+import { BUILD_ID } from '../utils/version.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -23,12 +24,20 @@ export interface VersionInfo {
   updateAvailable: boolean
 }
 
+export interface AgentConfig {
+  scanIntervals: Record<string, number> // segmentId -> seconds
+  enabledSegments: string[] // segment IDs
+  pingTimeoutMs: number
+  discoveryMethods: string[] // arp, ping, mdns, ssdp
+}
+
 export interface AgentUIState {
   agentId: string | null
   agentName: string
   organizationId: string | null
   dashboardUrl: string
   version: string
+  buildId: string
   connected: boolean
   lastHeartbeat: string | null
   segments: SegmentInfo[]
@@ -37,6 +46,7 @@ export interface AgentUIState {
   scanning: boolean
   health: HealthStats
   versionInfo: VersionInfo
+  config: AgentConfig
 }
 
 export interface SegmentInfo {
@@ -94,6 +104,7 @@ export class AgentUIServer {
       organizationId: null,
       dashboardUrl: '',
       version: '1.0.0',
+      buildId: BUILD_ID,
       connected: false,
       lastHeartbeat: null,
       segments: [],
@@ -111,6 +122,12 @@ export class AgentUIServer {
         current: initialState.version || '1.0.0',
         latest: null,
         updateAvailable: false,
+      },
+      config: {
+        scanIntervals: {},
+        enabledSegments: [],
+        pingTimeoutMs: 2000,
+        discoveryMethods: ['arp', 'ping'],
       },
       ...initialState,
     }
@@ -233,6 +250,11 @@ export class AgentUIServer {
       updateAvailable,
     }
     this.io.emit('version_info', this.state.versionInfo)
+  }
+
+  updateConfig(config: Partial<AgentConfig>): void {
+    this.state.config = { ...this.state.config, ...config }
+    this.io.emit('config_update', this.state.config)
   }
 
   private startHealthUpdates(): void {

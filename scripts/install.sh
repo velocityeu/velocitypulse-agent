@@ -15,6 +15,15 @@
 
 set -e
 
+# ============================================
+# DEPRECATION NOTICE
+# ============================================
+echo ""
+echo "  WARNING: This installer (v1.0.0) is deprecated."
+echo "  Use install-linux.sh instead for improved reliability."
+echo "  One-liner: curl -sSL https://get.velocitypulse.io/agent.sh | bash"
+echo ""
+
 VERSION="1.0.0"
 INSTALL_PATH="/opt/velocitypulse-agent"
 SERVICE_NAME="velocitypulse-agent"
@@ -229,14 +238,14 @@ upgrade_agent() {
 
     print_step "3" "4" "Downloading latest version..."
     TEMP_DIR=$(mktemp -d)
-    curl -fsSL "https://github.com/velocityeu/velocitypulse-agent/archive/refs/heads/master.tar.gz" -o "$TEMP_DIR/agent.tar.gz"
+    curl -fsSL "https://github.com/velocityeu/velocitypulse/archive/refs/heads/main.tar.gz" -o "$TEMP_DIR/agent.tar.gz"
     tar -xzf "$TEMP_DIR/agent.tar.gz" -C "$TEMP_DIR"
 
     # Remove old files but keep logs and .env
     find "$INSTALL_PATH" -mindepth 1 -maxdepth 1 ! -name 'logs' ! -name '.env' -exec rm -rf {} +
 
     # Copy new files
-    cp -r "$TEMP_DIR"/velocitypulse-agent-master/* "$INSTALL_PATH/"
+    cp -r "$TEMP_DIR"/velocitypulse-main/velocitypulse-agent/* "$INSTALL_PATH/"
     rm -rf "$TEMP_DIR"
 
     # Restore .env if it was removed
@@ -284,9 +293,9 @@ install_agent() {
     # Download agent
     print_step "3" "$TOTAL_STEPS" "Downloading agent..."
     TEMP_DIR=$(mktemp -d)
-    curl -fsSL "https://github.com/velocityeu/velocitypulse-agent/archive/refs/heads/master.tar.gz" -o "$TEMP_DIR/agent.tar.gz"
+    curl -fsSL "https://github.com/velocityeu/velocitypulse/archive/refs/heads/main.tar.gz" -o "$TEMP_DIR/agent.tar.gz"
     tar -xzf "$TEMP_DIR/agent.tar.gz" -C "$TEMP_DIR"
-    cp -r "$TEMP_DIR"/velocitypulse-agent-master/* "$INSTALL_PATH/"
+    cp -r "$TEMP_DIR"/velocitypulse-main/velocitypulse-agent/* "$INSTALL_PATH/"
     rm -rf "$TEMP_DIR"
     print_success "Agent downloaded"
 

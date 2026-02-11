@@ -374,6 +374,7 @@
                 <span><span class="brand-text">VelocityPulse</span> <span class="agent-text">Agent</span></span>
             </h1>
             <span class="version-badge current" id="version-badge">v1.0.0</span>
+            <span class="version-badge current" id="build-badge" style="font-size: 0.65rem; opacity: 0.7;"></span>
         </div>
         <div class="header-right">
             <button class="sonar-btn" id="sonar-btn" onclick="pingDashboard()" title="Sonar Ping">
@@ -464,6 +465,34 @@
                 </div>
             </div>
 
+            <!-- Configuration -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Configuration</h2>
+                </div>
+                <div class="card-body">
+                    <div class="info-row">
+                        <span class="info-label">Dashboard URL</span>
+                        <span class="info-value" id="config-dashboard-url">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Ping Timeout</span>
+                        <span class="info-value" id="config-ping-timeout">2000ms</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Discovery Methods</span>
+                        <span class="info-value" id="config-discovery">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Enabled Segments</span>
+                        <span class="info-value" id="config-segments">-</span>
+                    </div>
+                    <div id="config-intervals"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top: 1.5rem;">
             <!-- Actions -->
             <div class="card">
                 <div class="card-header">
@@ -533,7 +562,7 @@
         </div>
 
         <footer class="footer">
-            <span>VelocityPulse Agent v<span id="footer-version">1.0.0</span></span>
+            <span>VelocityPulse Agent v<span id="footer-version">1.0.0</span> <span id="footer-build" style="opacity: 0.6;"></span></span>
             <span>
                 <a href="https://velocitypulse.io" target="_blank">velocitypulse.io</a>
                 &middot;
@@ -551,6 +580,7 @@
             logs: [],
             health: null,
             versionInfo: null,
+            config: null,
         };
 
         // Sonar ping audio
@@ -620,6 +650,11 @@
             updateVersionBadge();
         });
 
+        socket.on('config_update', (config) => {
+            state.config = config;
+            updateConfig();
+        });
+
         // Update functions
         function updateUI() {
             updateConnectionStatus();
@@ -630,6 +665,7 @@
             updateLogs();
             updateHealth();
             updateVersionBadge();
+            updateConfig();
         }
 
         function updateConnectionStatus() {
@@ -650,6 +686,9 @@
             document.getElementById('org-id').textContent = state.organizationId ? state.organizationId.substring(0, 8) + '...' : '-';
             document.getElementById('version').textContent = state.version || '1.0.0';
             document.getElementById('footer-version').textContent = state.version || '1.0.0';
+            const bid = state.buildId && state.buildId !== '__BUILD_ID__' ? state.buildId : '';
+            document.getElementById('build-badge').textContent = bid ? '(' + bid + ')' : '';
+            document.getElementById('footer-build').textContent = bid ? '(' + bid + ')' : '';
             document.getElementById('last-heartbeat').textContent = state.lastHeartbeat
                 ? new Date(state.lastHeartbeat).toLocaleTimeString()
                 : '-';
@@ -699,8 +738,45 @@
                 badge.title = 'Update available! Click to learn more.';
             } else {
                 badge.className = 'version-badge current';
-                badge.textContent = 'v' + (state.version || '1.0.0');
+                const bid = state.buildId && state.buildId !== '__BUILD_ID__' ? state.buildId : '';
+                badge.textContent = 'v' + (state.version || '1.0.0') + (bid ? ' (' + bid + ')' : '');
                 badge.title = 'Up to date';
+            }
+        }
+
+        function updateConfig() {
+            const cfg = state.config;
+            if (!cfg) return;
+
+            const dashUrl = document.getElementById('config-dashboard-url');
+            dashUrl.textContent = state.dashboardUrl || '-';
+
+            document.getElementById('config-ping-timeout').textContent = cfg.pingTimeoutMs + 'ms';
+
+            const methods = cfg.discoveryMethods || [];
+            document.getElementById('config-discovery').textContent =
+                methods.length > 0 ? methods.join(', ') : 'None';
+
+            const segments = cfg.enabledSegments || [];
+            document.getElementById('config-segments').textContent =
+                segments.length > 0 ? segments.length + ' segment' + (segments.length !== 1 ? 's' : '') : 'All';
+
+            // Scan intervals per segment
+            const intervalsEl = document.getElementById('config-intervals');
+            const intervals = cfg.scanIntervals || {};
+            const keys = Object.keys(intervals);
+            if (keys.length > 0) {
+                intervalsEl.innerHTML = keys.map(segId => {
+                    const seg = state.segments.find(s => s.id === segId);
+                    const name = seg ? escapeHtml(seg.name) : segId.substring(0, 8) + '...';
+                    const secs = intervals[segId];
+                    const display = secs >= 3600 ? Math.floor(secs / 3600) + 'h'
+                        : secs >= 60 ? Math.floor(secs / 60) + 'm'
+                        : secs + 's';
+                    return '<div class="info-row"><span class="info-label">' + name + '</span><span class="info-value">every ' + display + '</span></div>';
+                }).join('');
+            } else {
+                intervalsEl.innerHTML = '';
             }
         }
 

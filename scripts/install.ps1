@@ -9,7 +9,7 @@
     irm https://get.velocitypulse.io/agent | iex
 .EXAMPLE
     # Or download and run directly:
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/velocityeu/velocitypulse-agent/master/scripts/install.ps1" -OutFile "$env:TEMP\install.ps1"; & "$env:TEMP\install.ps1"
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/velocityeu/velocitypulse/main/velocitypulse-agent/scripts/install.ps1" -OutFile "$env:TEMP\install.ps1"; & "$env:TEMP\install.ps1"
 .NOTES
     Version: 1.0.0
     Author: Velocity EU
@@ -35,9 +35,18 @@ $script:UIPort = $UIPort
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
+# ============================================
+# DEPRECATION NOTICE
+# ============================================
+Write-Host ""
+Write-Host "  WARNING: This installer (v1.0.0) is deprecated." -ForegroundColor Yellow
+Write-Host "  Use install-windows.ps1 (v3.0.0) instead for improved reliability." -ForegroundColor Yellow
+Write-Host "  One-liner: irm https://get.velocitypulse.io/agent | iex" -ForegroundColor Yellow
+Write-Host ""
+
 # Version and constants
 $Version = "1.0.0"
-$ZipUrl = "https://github.com/velocityeu/velocitypulse-agent/archive/refs/heads/master.zip"
+$ZipUrl = "https://github.com/velocityeu/velocitypulse/archive/refs/heads/main.zip"
 # NSSM download URLs (primary + fallbacks)
 $NssmUrls = @(
     "https://nssm.cc/release/nssm-2.24.zip",
@@ -283,13 +292,20 @@ ENABLE_REALTIME=true
 
     # Install service
     $nodePath = (Get-Command node).Source
-    & $NssmPath install $ServiceName $nodePath "$InstallPath\dist\index.js" 2>&1 | Out-Null
+    $entryPoint = "$InstallPath\dist\index.js"
+    & $NssmPath install $ServiceName $nodePath 2>&1 | Out-Null
     & $NssmPath set $ServiceName AppDirectory $InstallPath 2>&1 | Out-Null
     & $NssmPath set $ServiceName DisplayName "VelocityPulse Agent" 2>&1 | Out-Null
     & $NssmPath set $ServiceName Description "Network monitoring agent for VelocityPulse SaaS platform" 2>&1 | Out-Null
     & $NssmPath set $ServiceName Start SERVICE_AUTO_START 2>&1 | Out-Null
     & $NssmPath set $ServiceName AppStdout "$InstallPath\logs\service.log" 2>&1 | Out-Null
     & $NssmPath set $ServiceName AppStderr "$InstallPath\logs\service-error.log" 2>&1 | Out-Null
+
+    # Set AppParameters via registry to avoid PowerShell quote escaping issues with spaces in paths
+    $paramsRegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$ServiceName\Parameters"
+    if (Test-Path $paramsRegPath) {
+        Set-ItemProperty -Path $paramsRegPath -Name "AppParameters" -Value "`"$entryPoint`""
+    }
 
     # Create logs directory
     New-Item -ItemType Directory -Path "$InstallPath\logs" -Force | Out-Null

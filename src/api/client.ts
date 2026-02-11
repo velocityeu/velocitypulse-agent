@@ -119,7 +119,7 @@ export class DashboardClient {
       baseURL: dashboardUrl,
       timeout: 30000,
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'X-Agent-Key': apiKey,
         'Content-Type': 'application/json',
         'X-Agent-Client': 'VelocityPulse-Agent/1.0',
       },

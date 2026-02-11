@@ -3,6 +3,7 @@
  * Single source of truth for version information
  */
 export declare const VERSION = "1.0.0";
+export declare const BUILD_ID = "__BUILD_ID__";
 export declare const PRODUCT_NAME = "VelocityPulse Agent";
 /**
  * Compare two semantic version strings

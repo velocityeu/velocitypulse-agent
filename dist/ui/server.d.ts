@@ -12,12 +12,19 @@ export interface VersionInfo {
     latest: string | null;
     updateAvailable: boolean;
 }
+export interface AgentConfig {
+    scanIntervals: Record<string, number>;
+    enabledSegments: string[];
+    pingTimeoutMs: number;
+    discoveryMethods: string[];
+}
 export interface AgentUIState {
     agentId: string | null;
     agentName: string;
     organizationId: string | null;
     dashboardUrl: string;
     version: string;
+    buildId: string;
     connected: boolean;
     lastHeartbeat: string | null;
     segments: SegmentInfo[];
@@ -26,6 +33,7 @@ export interface AgentUIState {
     scanning: boolean;
     health: HealthStats;
     versionInfo: VersionInfo;
+    config: AgentConfig;
 }
 export interface SegmentInfo {
     id: string;
@@ -68,6 +76,7 @@ export declare class AgentUIServer {
     addDevice(device: DeviceInfo): void;
     updateDeviceStatus(deviceId: string, status: DeviceInfo['status'], responseTime?: number): void;
     updateVersionInfo(latest: string | null, updateAvailable: boolean): void;
+    updateConfig(config: Partial<AgentConfig>): void;
     private startHealthUpdates;
     addLog(level: LogEntry['level'], message: string): void;
     start(): Promise<void>;

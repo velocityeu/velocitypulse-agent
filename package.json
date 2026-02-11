@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc && npm run copy-static",
-    "copy-static": "node -e \"const fs=require('fs');const path=require('path');fs.cpSync('src/ui/public','dist/ui/public',{recursive:true})\"",
+    "copy-static": "node --input-type=commonjs -e \"require('fs').cpSync('src/ui/public','dist/ui/public',{recursive:true})\"",
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest"
