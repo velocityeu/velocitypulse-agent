@@ -9,7 +9,7 @@ import { discoverDevices } from './scanner/discover.js';
 import { pingHost } from './scanner/ping.js';
 import { checkTcpPort } from './scanner/tcp.js';
 import { checkHttp } from './scanner/http.js';
-import { getPrimaryLocalNetwork, generateAutoSegmentName } from './utils/network-detect.js';
+import { getPhysicalLocalNetworks, generateAutoSegmentName } from './utils/network-detect.js';
 import { AgentUIServer } from './ui/server.js';
 import { RealtimeClient } from './api/realtime.js';
 import { performUpgrade } from './upgrade/upgrader.js';
@@ -534,15 +534,20 @@ async function main() {
         // Check if we have any segments
         if (segmentStates.size === 0) {
             logger.info('No segments assigned - attempting auto-detection');
-            const localNetwork = getPrimaryLocalNetwork();
-            if (localNetwork) {
-                const segmentName = generateAutoSegmentName(localNetwork);
-                logger.info(`Detected local network: ${segmentName}`);
+            const networks = getPhysicalLocalNetworks();
+            if (networks.length === 0) {
+                logger.warn('Could not detect any local networks for auto-scan');
+                return;
+            }
+            logger.info(`Detected ${networks.length} local network(s)`);
+            for (const network of networks) {
+                const segmentName = generateAutoSegmentName(network);
+                logger.info(`Registering: ${segmentName}`);
                 try {
                     const segment = await client.registerAutoSegment({
-                        cidr: localNetwork.cidr,
+                        cidr: network.cidr,
                         name: segmentName,
-                        interface_name: localNetwork.interfaceName,
+                        interface_name: network.interfaceName,
                     });
                     logger.info(`Auto-registered segment: ${segment.name}`);
                     segmentStates.set(segment.id, {
@@ -553,11 +558,20 @@ async function main() {
                 }
                 catch (error) {
                     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-                    logger.warn(`Failed to register auto-segment: ${errorMsg}`);
+                    logger.warn(`Failed to register segment ${segmentName}: ${errorMsg}`);
+                    // Continue with next network — don't abort all registrations
                 }
             }
-            else {
-                logger.warn('Could not detect local network for auto-scan');
+            // Update UI with newly registered segments
+            if (uiServer) {
+                uiServer.updateSegments(Array.from(segmentStates.values()).map(s => ({
+                    id: s.segment.id,
+                    name: s.segment.name,
+                    cidr: s.segment.cidr,
+                    lastScan: s.lastScan ? new Date(s.lastScan).toISOString() : null,
+                    deviceCount: 0,
+                    scanning: false,
+                })));
             }
         }
     }

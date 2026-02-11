@@ -82,6 +82,34 @@ export function getPrimaryLocalNetwork() {
     return physicalNetworks[0] || nonLinkLocal[0];
 }
 /**
+ * Get all unique physical network segments (deduplicated by CIDR).
+ * Filters out link-local and virtual/container interfaces.
+ */
+export function getPhysicalLocalNetworks() {
+    const allNetworks = detectLocalNetworks();
+    // Filter out link-local addresses (169.254.x.x)
+    const nonLinkLocal = allNetworks.filter(n => !n.address.startsWith('169.254.'));
+    // Filter out virtual/container interfaces
+    const virtualPrefixes = ['docker', 'veth', 'br-', 'virbr', 'vmnet', 'vbox', 'tun', 'tap'];
+    const physical = nonLinkLocal.filter(n => !virtualPrefixes.some(vp => n.interfaceName.toLowerCase().includes(vp)));
+    // Deduplicate by CIDR — two adapters on the same subnet become one segment
+    const seen = new Map();
+    for (const net of physical) {
+        if (!seen.has(net.cidr)) {
+            seen.set(net.cidr, net);
+        }
+    }
+    // Fallback: if all filtered out, return non-link-local set (deduplicated)
+    if (seen.size === 0 && nonLinkLocal.length > 0) {
+        for (const net of nonLinkLocal) {
+            if (!seen.has(net.cidr)) {
+                seen.set(net.cidr, net);
+            }
+        }
+    }
+    return Array.from(seen.values());
+}
+/**
  * Generate a human-readable name for an auto-detected segment
  */
 export function generateAutoSegmentName(network) {

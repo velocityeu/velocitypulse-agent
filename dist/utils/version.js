@@ -3,7 +3,7 @@
  * Single source of truth for version information
  */
 // Agent version - UPDATE THIS for each release
-export const VERSION = '1.0.1';
+export const VERSION = '1.1.0';
 // Build ID - replaced by CI at release time (sed __BUILD_ID__ -> short SHA)
 export const BUILD_ID = '__BUILD_ID__';
 // Product name for branding

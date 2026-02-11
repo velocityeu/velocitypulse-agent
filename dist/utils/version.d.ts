@@ -2,7 +2,7 @@
  * Centralized version management for VelocityPulse Agent
  * Single source of truth for version information
  */
-export declare const VERSION = "1.0.1";
+export declare const VERSION = "1.1.0";
 export declare const BUILD_ID = "__BUILD_ID__";
 export declare const PRODUCT_NAME = "VelocityPulse Agent";
 /**

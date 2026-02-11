@@ -19,6 +19,11 @@ export declare function detectLocalNetworks(): LocalNetwork[];
  */
 export declare function getPrimaryLocalNetwork(): LocalNetwork | null;
 /**
+ * Get all unique physical network segments (deduplicated by CIDR).
+ * Filters out link-local and virtual/container interfaces.
+ */
+export declare function getPhysicalLocalNetworks(): LocalNetwork[];
+/**
  * Generate a human-readable name for an auto-detected segment
  */
 export declare function generateAutoSegmentName(network: LocalNetwork): string;
