@@ -1,6 +1,6 @@
 {
   "name": "velocitypulse-agent",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Network monitoring agent for VelocityPulse SaaS platform",
   "main": "dist/index.js",
   "type": "module",

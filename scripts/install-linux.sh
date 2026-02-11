@@ -157,7 +157,7 @@ TEMP_ZIP="$TEMP_DIR/agent.tar.gz"
 
 # Try GitHub releases API (monorepo: filter for agent-v* tags)
 # Supports both public repos (unauthenticated) and private repos (with GITHUB_TOKEN)
-REPO="velocityeu/velocitypulse"
+REPO="velocityeu/velocitypulse-agent"
 RELEASES_URL="https://api.github.com/repos/$REPO/releases"
 DOWNLOAD_URL=""
 AUTH_ARGS=""

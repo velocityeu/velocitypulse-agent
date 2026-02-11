@@ -4,7 +4,7 @@
  */
 
 // Agent version - UPDATE THIS for each release
-export const VERSION = '1.0.0'
+export const VERSION = '1.0.1'
 
 // Build ID - replaced by CI at release time (sed __BUILD_ID__ -> short SHA)
 export const BUILD_ID = '__BUILD_ID__'

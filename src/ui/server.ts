@@ -160,7 +160,7 @@ export class AgentUIServer {
     })
 
     // Fallback to index.html for SPA routing
-    this.app.get('*', (_req, res) => {
+    this.app.get('/{*path}', (_req, res) => {
       res.sendFile(path.join(publicPath, 'index.html'))
     })
   }
